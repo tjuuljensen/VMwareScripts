@@ -61,6 +61,9 @@ echo "Red Hat Enterprise Linux Server release 7.0 (Maipo)" > /etc/redhat-release
 /bin/rm -f ~root/.bash_history
 unset HISTFILE
 
+#setting the root password age to 0 
+chage -d 0 root
+
 # consider using sys-unconfig (http://www.cyberciti.biz/faq/redhat-rhel-centos-fedora-linux-sys-unconfig-command/)
 # sys-unconfig
 

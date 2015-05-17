@@ -3,10 +3,11 @@
 #run as superuser
 #sudo -i
 
-yum -y install wget
-
-#update
+#update packages
 yum -y update
+
+# install missing packages 
+yum -y install wget net-tools nano yum-utils
 
 # install vmware packaging public keys
 mkdir /tmp/vmware-keys
@@ -29,7 +30,4 @@ yum -y install open-vm-tools open-vm-tools-deploypkg
 
 # restart vmwaretools plugin
 systemctl restart vmtoolsd
-
-# install missing packages 
-yum -y install net-tools nano yum-utils
 

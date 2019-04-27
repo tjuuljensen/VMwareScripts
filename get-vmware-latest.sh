@@ -1,6 +1,9 @@
   #!/bin/bash
   # get-vmware-latest.sh
   #
+  # Author: Torsten Juul-Jensen, tjuuljensen@gmail.com
+  # April 27, 2019
+  #
   # This script will handle download of latest software, online latest version check and  install support of VMware workstation.s
   # It was created to be part of an easy-configure setup for Linux computers as well as the maintenance of the installation over the long run.
   # The script has support for automatically reading serial numbers from a config file and use them in the registration of the software
@@ -125,9 +128,9 @@
   }
 
   _installVMwareWorkstation(){
-    # download has been done. Now install vmware workstation 
-    ./$BINARYFILENAME --required --console # 
-    
+    # download has been done. Now install vmware workstation
+    ./$BINARYFILENAME --required --console #
+
     # add serial number if serial number is defined
     if [ ! -z $CURRENTVMWSERIAL ] ; then #Serial number for major version is loaded as a variable
       /usr/lib/vmware/bin/vmware-vmx --new-sn $CURRENTVMWSERIAL #please note that this variable needs to be addressed differently because it's dynamically defined

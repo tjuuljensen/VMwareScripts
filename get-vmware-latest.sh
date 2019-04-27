@@ -125,16 +125,14 @@
   }
 
   _installVMwareWorkstation(){
-    # download has been done. Now install vmware workstation (filename on bundle file is predetermined by download section with -O parameter)
-    ./$BINARYFILENAME --required --console # /$VMWAREBIN --required --console
-    # add serial number if seriual number is defined
-
+    # download has been done. Now install vmware workstation 
+    ./$BINARYFILENAME --required --console # 
+    
+    # add serial number if serial number is defined
     if [ ! -z $CURRENTVMWSERIAL ] ; then #Serial number for major version is loaded as a variable
       /usr/lib/vmware/bin/vmware-vmx --new-sn $CURRENTVMWSERIAL #please note that this variable needs to be addressed differently because it's dynamically defined
     fi
-
     vmware-modconfig --console --install-all
-
   }
 
   _outputSerial () {

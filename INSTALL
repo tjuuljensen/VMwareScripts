@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# Install script - installs all .sh files to directory as symlinks
+
+DST=~/bin #default install directory
+
+
+if [ $# -gt 1 ] ; then
+    echo "usage: $0 [<destination directory, default: $DST)>]"
+    exit 1
+fi
+
+if [ $# -eq 1 ] ; then
+    DST=$1
+fi
+
+for f in *.sh ; do
+    if [ "$f" = "$(basename "$0")" -o ! -x "$f" ] ; then
+        continue
+    fi
+    echo "$f"
+    ln -fs "$(realpath "$f")" "$DST/$f"
+done

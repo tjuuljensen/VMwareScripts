@@ -80,10 +80,10 @@
   _defineVariables () {
     # Basic variables
     if [ -z $DOWNLOADDIR ] ; then DOWNLOADDIR=. ; fi # If it has not been declared by command line args it is set to current directory
-    SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+    SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )" #set the variable to the place where script is loaded from
 
     # Read config file with serial numbers
-    if [ -z $CONFIGFILE ] ; then CONFIGFILE=$SCRIPTDIR/serialnumbers.config ; fi # If CONFIGFILE has not been declared by command line args, it is set to a default value
+    if [ -z $CONFIGFILE ] ; then CONFIGFILE=$SCRIPTDIR/serialnumbers.config ; fi # If CONFIGFILE has not been declared by command line args, it is set to a default value (serianlnum... in script directory)
     if [[ -f $CONFIGFILE ]] ; then # file exists
       source $CONFIGFILE # Load serial numbers from config file
     fi

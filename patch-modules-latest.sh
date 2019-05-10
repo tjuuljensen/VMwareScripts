@@ -23,6 +23,7 @@ cd vmware-host-modules
 
 if [[ $(git branch | grep $VMWAREVERSION) != "" ]] ; then # current vmware version is a branch in mkubecek's github library
   [ "$UID" -eq 0 ] || exec sudo bash "$0" "$@" # check if script is root and restart as root if not
+  # get github repo to recompile vmware kernel modules to newer kernel modules
   sudo -u $MYUSER git checkout workstation-$VMWAREVERSION
   sudo -u $MYUSER make
   make install

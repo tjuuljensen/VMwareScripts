@@ -16,12 +16,13 @@ BINARYURL=$(wget $VMWAREURL -O - --content-disposition --spider 2>&1 | grep Loca
 VMWAREVERSION=$(echo $BINARYURL | cut -d '-' -f4 ) # In the format XX.XX.XX
 
 cd $MYUSERDIR/git
-
-sudo -u $MYUSER git clone https://github.com/mkubecek/vmware-host-modules.git
+if [ ! -d vmware-host-modules ]; then
+  sudo -u $MYUSER git clone https://github.com/mkubecek/vmware-host-modules.git
+fi
 
 cd vmware-host-modules
 
-if [[ $(git branch | grep $VMWAREVERSION) != "" ]] ; then # current vmware version is a branch in mkubecek's github library
+if [[ ! -z $(git checkout workstation-$VMWAREVERSION 2>/dev/null) ]] ; then # current vmware version is a branch in mkubecek's github library
   [ "$UID" -eq 0 ] || exec sudo bash "$0" "$@" # check if script is root and restart as root if not
   # get github repo to recompile vmware kernel modules to newer kernel modules
   sudo -u $MYUSER git checkout workstation-$VMWAREVERSION

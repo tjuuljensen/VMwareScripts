@@ -21,13 +21,15 @@ sudo -u $MYUSER git clone https://github.com/mkubecek/vmware-host-modules.git
 
 cd vmware-host-modules
 
-if [[ $(git branch | grep $VMWAREVERSION) != "" ]] ; then # current vmware version exists in mkubecek's github library
-  git checkout workstation-$VMWAREVERSION
-  sudo make install
+if [[ $(git branch | grep $VMWAREVERSION) != "" ]] ; then # current vmware version is a branch in mkubecek's github library
+  [ "$UID" -eq 0 ] || exec sudo bash "$0" "$@" # check if script is root and restart as root if not
+  sudo -u $MYUSER git checkout workstation-$VMWAREVERSION
+  sudo -u $MYUSER make
+  make install
 
-  mv /usr/lib/vmware/lib/libz.so.1/libz.so.1 /usr/lib/vmware/lib/libz.so.1/libz.so.1.old
-  ln -s /lib/x86_64-linux-gnu/libz.so.1 /usr/lib/vmware/lib/libz.so.1/libz.so.1
+  #mv /usr/lib/vmware/lib/libz.so.1/libz.so.1 /usr/lib/vmware/lib/libz.so.1/libz.so.1.old
+  #ln -s /lib/x86_64-linux-gnu/libz.so.1 /usr/lib/vmware/lib/libz.so.1/libz.so.1
   systemctl restart vmware && vmware &
 else
-  echo "Current VMware version $VMWAREVERSION doesn't exist in mkubecek's github repo"
+  echo "There is not a valid branch in mkubecek's repo that matches current VMware version $VMWAREVERSION"
 fi

@@ -129,7 +129,7 @@
 
   _installVMwareWorkstation(){
     # download has been done. Now install vmware workstation
-    ./$BINARYFILENAME --required --console #
+    ./$BINARYFILENAME --required --console --eulas-agreed #
 
     # add serial number if serial number is defined
     if [ ! -z $CURRENTVMWSERIAL ] ; then #Serial number for major version is loaded as a variable

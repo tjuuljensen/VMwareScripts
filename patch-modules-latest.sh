@@ -8,6 +8,9 @@
 # libz.so.1 patch grabbed from https://wesley.sh/solved-vmware-workstation-15-fails-to-compile-kernel-modules-with-failed-to-build-vmmon-and-failed-to-build-vmnet/
 #
 #
+
+[ "$UID" -eq 0 ] || exec sudo bash "$0" "$@" # check if script is root and restart as root if not
+
 MYUSER=$(logname)
 MYUSERDIR=/home/$MYUSER
 
@@ -15,7 +18,7 @@ VMWAREURL=https://www.vmware.com/go/getworkstation-linux
 BINARYURL=$(wget $VMWAREURL -O - --content-disposition --spider 2>&1 | grep Location | cut -d ' ' -f2) # Full URL to binary installer
 VMWAREVERSION=$(echo $BINARYURL | cut -d '-' -f4 ) # In the format XX.XX.XX
 
-[ "$UID" -eq 0 ] || exec sudo bash "$0" "$@" # check if script is root and restart as root if not
+systemctl stop vmware
 
 cd $MYUSERDIR/git
 if [ ! -d vmware-host-modules ]; then
@@ -24,16 +27,32 @@ fi
 
 cd vmware-host-modules
 
-if [[ ! -z $(git checkout workstation-$VMWAREVERSION 2>/dev/null) ]] ; then # current vmware version is a branch in mkubecek's github library
+if [[ ! -z $(sudo -u $MYUSER git checkout workstation-$VMWAREVERSION 2>/dev/null) ]] ; then # current vmware version is a branch in mkubecek's github library
 
-  # get github repo to recompile vmware kernel modules to newer kernel modules
-  sudo -u $MYUSER git checkout workstation-$VMWAREVERSION
-  sudo -u $MYUSER make
-  make install
+  if [ $# -eq 0 ] ; then
+      INSTALLEDKERNEL=$(rpm -qa kernel | sed 's/kernel-//g' | sort -r -V | awk 'NR==1' )
+    else
+      INSTALLEDKERNEL=$1
+  fi
 
-  #mv /usr/lib/vmware/lib/libz.so.1/libz.so.1 /usr/lib/vmware/lib/libz.so.1/libz.so.1.old
-  #ln -s /lib/x86_64-linux-gnu/libz.so.1 /usr/lib/vmware/lib/libz.so.1/libz.so.1
-  systemctl restart vmware && vmware &
+  #INSTALLEDKERNEL=$(rpm -qa kernel | sed 's/kernel-//g' | sort -r -V | awk 'NR==1' )
+  RUNNINGKERNEL=$(uname -r)
+  #LATESTKERNELVER=$(echo $INSTALLEDKERNEL | sed 's/kernel-//g' | sed 's/\.fc[0-9].*//g')
+
+  # Build for the kernel is installed
+  if [ $INSTALLEDKERNEL != $RUNNINGKERNEL ] ; then
+    echo Building modules for latest installed kernel $INSTALLEDKERNEL
+    sudo -u $MYUSER make VM_UNAME=$INSTALLEDKERNEL
+    make install VM_UNAME=$INSTALLEDKERNEL
+    echo "Make sure to reboot before starting VMware (You are running another kernel than the compiled modules for VMware)"
+  else # install for current kernel
+    echo Building modules for current installed kernel $RUNNINGKERNEL
+    sudo -u $MYUSER make
+    make install
+    systemctl restart vmware
+  fi
+
+
 else
-  echo "There is not a valid branch in mkubecek's repo that matches current VMware version $VMWAREVERSION"
+  echo "There is not a valid branch in mkubecek's repo that matches current Mware version $VMWAREVERSION"
 fi

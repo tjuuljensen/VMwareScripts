@@ -90,11 +90,7 @@
 
     # define URL locations and extract key information for later use
     VMWAREURL=https://www.vmware.com/go/getworkstation-linux
-<<<<<<< HEAD
-    BINARYURL=$(curl -sI  $VMWAREURL | grep -o -E 'Location:.*$' | sed -e 's/Location: //' | sed 's/\r//g') # Full URL to binary installer using curl (and remove CR in the end)
-=======
     BINARYURL=$(curl -I $VMWAREURL 2>&1 | grep Location | cut -d ' ' -f2 | sed 's/\r//g') # Full URL to binary installer
->>>>>>> 6d904ee5453bb666e5a6de5312512cdba62a5a9f
     BINARYFILENAME="${BINARYURL##*/}" # Filename of binary installer
     VMWAREVERSION=$(echo $BINARYURL | cut -d '-' -f4 ) # In the format XX.XX.XX
     MAJORVERSION=$(echo $BINARYURL | cut -d '-' -f4 | cut -d '.' -f1) # In the format XX

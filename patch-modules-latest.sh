@@ -15,7 +15,7 @@ MYUSER=$(logname)
 MYUSERDIR=/home/$MYUSER
 
 VMWAREURL=https://www.vmware.com/go/getworkstation-linux
-BINARYURL=$(wget $VMWAREURL -O - --content-disposition --spider 2>&1 | grep Location | cut -d ' ' -f2) # Full URL to binary installer
+BINARYURL=$(curl -I $VMWAREURL 2>&1 | grep Location | cut -d ' ' -f2 | sed 's/\r//g') # Full URL to binary installer
 VMWAREVERSION=$(echo $BINARYURL | cut -d '-' -f4 ) # In the format XX.XX.XX
 
 systemctl stop vmware

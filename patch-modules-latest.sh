@@ -2,7 +2,7 @@
 # patch vmware modules
 #
 # Author: Torsten Juul-Jensen
-# Date: May 9, 2019
+# Date: January 16, 2020
 #
 # Updated maintaned by mkubecek on https://github.com/mkubecek/vmware-host-modules
 # libz.so.1 patch grabbed from https://wesley.sh/solved-vmware-workstation-15-fails-to-compile-kernel-modules-with-failed-to-build-vmmon-and-failed-to-build-vmnet/
@@ -23,20 +23,26 @@ systemctl stop vmware
 cd $MYUSERDIR/git
 if [ ! -d vmware-host-modules ]; then
   sudo -u $MYUSER git clone https://github.com/mkubecek/vmware-host-modules.git
+  # Change into mkubecek's repo library
+  cd vmware-host-modules
+else
+  cd vmware-host-modules
+  sudo -u $MYUSER git pull
 fi
 
-cd vmware-host-modules
 
 if [[ ! -z $(sudo -u $MYUSER git checkout workstation-$VMWAREVERSION 2>/dev/null) ]] ; then # current vmware version is a branch in mkubecek's github library
 
   if [ $# -eq 0 ] ; then
-      INSTALLEDKERNEL=$(rpm -qa kernel | sed 's/kernel-//g' | sort -r -V | awk 'NR==1' )
+      INSTALLEDKERNEL=$(rpm -qa kernel | sed 's/kernel-//g' | sort -r -V | awk 'NR==1')
     else
       INSTALLEDKERNEL=$1
   fi
 
   #INSTALLEDKERNEL=$(rpm -qa kernel | sed 's/kernel-//g' | sort -r -V | awk 'NR==1' )
   RUNNINGKERNEL=$(uname -r)
+  echo Installed kernel: $INSTALLEDKERNEL
+  echo Running kernel: $RUNNINGKERNEL
   #LATESTKERNELVER=$(echo $INSTALLEDKERNEL | sed 's/kernel-//g' | sed 's/\.fc[0-9].*//g')
 
   # Build for the kernel is installed
@@ -54,5 +60,8 @@ if [[ ! -z $(sudo -u $MYUSER git checkout workstation-$VMWAREVERSION 2>/dev/null
 
 
 else
+  RUNNINGKERNEL=$(uname -r)
+  echo Installed kernel: $INSTALLEDKERNEL
+  echo Running kernel: $RUNNINGKERNEL
   echo "There is not a valid branch in mkubecek's repo that matches current Mware version $VMWAREVERSION"
 fi

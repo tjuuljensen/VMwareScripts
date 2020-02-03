@@ -97,37 +97,37 @@ _parseArguments() {
   do
     case $1 in
         -d | --delete | -u | --unlock )
-        #dnf versionlock delete *
-        _checkVersionFormat $2
-        if ( dnf versionlock list kernel*$2  > /dev/null ) ; then
-          _removeKernelLock $2
-        fi
-        shift
-        shift
-        exit 0
-        ;;
+          #dnf versionlock delete *
+          _checkVersionFormat $2
+          if ( dnf versionlock list kernel*$2  > /dev/null ) ; then
+            _removeKernelLock $2
+          fi
+          shift
+          shift
+          exit 0
+          ;;
         -l | --lock )
-        # lock kernel $2
-        _checkVersionFormat $2
-        _lockKernel $2
-        shift
-        shift
-        exit 0
-        ;;
+          # lock kernel $2
+          _checkVersionFormat $2
+          _lockKernel $2
+          shift
+          shift
+          exit 0
+          ;;
         -i | --install )
-        _checkVersionFormat $2
-        _installKernel $2
-        shift
-        shift
-        exit 0
-        ;;
+          _checkVersionFormat $2
+          _installKernel $2
+          shift
+          shift
+          exit 0
+          ;;
         --info )
-        echo "### Grubby Info: ###"
-        grubby --info=ALL | grep index=2 -A 1
-        echo "### dnf versionlock Info: ###"
-        dnf versionlock list kernel*
-        exit 0
-        ;;
+          echo "### Grubby Info: ###"
+          grubby --info=ALL | grep index=2 -A 1
+          echo "### dnf versionlock Info: ###"
+          dnf versionlock list kernel*
+          exit 0
+          ;;
         * )
         # kernel alone options automates to lock function
         _checkVersionFormat $1

@@ -1,6 +1,7 @@
 #!/bin/bash
 # lock-kernel.sh
 #
+# Intended use (and tested) on Fedora Workstation
 # locks specific installed kernel with versionlock
 # version regex= ^[0-9]+\.[0-9]+\.[0-9]+$
 
@@ -13,7 +14,6 @@ _requireAdmin(){
 _help(){
   SCRIPT_NAME=$(basename $0)
   echo "usage: $SCRIPT_NAME [--help] [--lock <KERNELVERSION_TO_BE_LOCKED>] [--unlock LOCKED_KERNELVERSION] [--install KERNELVERSION] [--info]"
-  exit 1
 }
 
 _installRequired(){
@@ -51,7 +51,6 @@ _lockKernel(){
     rpm -qa kernel* | grep $1 | xargs dnf versionlock add
   else
     echo "Error: Cannot lock kernel. No bootimage for kernel-$1 found in /boot/"
-    _help
     exit 2
   fi
 }
@@ -71,7 +70,8 @@ _checkVersionFormat(){
   # Check if the parsed parameter matches regex "^[0-9]+\.[0-9]+\.[0-9]+$" (like 5.4.7)
   if [[ $# -eq 0 ]] ; then
     echo "Error: [_checkVersionFormat] Function called with wrong number of parameters"
-    exit 2
+    _help
+    exit 1
   fi
 
   if [[ ! $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then

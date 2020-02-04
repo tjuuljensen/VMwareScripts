@@ -2,24 +2,24 @@
 # patch vmware modules
 #
 # Author: Torsten Juul-Jensen
-# Date: January 16, 2020
+# Date: February< 3, 2020
 #
 # Updated maintaned by mkubecek on https://github.com/mkubecek/vmware-host-modules
-# libz.so.1 patch grabbed from https://wesley.sh/solved-vmware-workstation-15-fails-to-compile-kernel-modules-with-failed-to-build-vmmon-and-failed-to-build-vmnet/
-#
-#
 
+# rerun as root if user is not root
 [ "$UID" -eq 0 ] || exec sudo bash "$0" "$@" # check if script is root and restart as root if not
 
+# define variables
 MYUSER=$(logname)
 MYUSERDIR=/home/$MYUSER
-
 VMWAREURL=https://www.vmware.com/go/getworkstation-linux
 BINARYURL=$(curl -I $VMWAREURL 2>&1 | grep Location | cut -d ' ' -f2 | sed 's/\r//g') # Full URL to binary installer
 VMWAREVERSION=$(echo $BINARYURL | cut -d '-' -f4 ) # In the format XX.XX.XX
+RUNNINGKERNEL=$(uname -r)
 
 systemctl stop vmware
 
+# Enter git directory (clone if it doesn' exist)
 cd $MYUSERDIR/git
 if [ ! -d vmware-host-modules ]; then
   sudo -u $MYUSER git clone https://github.com/mkubecek/vmware-host-modules.git
@@ -40,7 +40,6 @@ if [[ ! -z $(sudo -u $MYUSER git checkout workstation-$VMWAREVERSION 2>/dev/null
   fi
 
   #INSTALLEDKERNEL=$(rpm -qa kernel | sed 's/kernel-//g' | sort -r -V | awk 'NR==1' )
-  RUNNINGKERNEL=$(uname -r)
   echo Installed kernel: $INSTALLEDKERNEL
   echo Running kernel: $RUNNINGKERNEL
   #LATESTKERNELVER=$(echo $INSTALLEDKERNEL | sed 's/kernel-//g' | sed 's/\.fc[0-9].*//g')
@@ -58,9 +57,7 @@ if [[ ! -z $(sudo -u $MYUSER git checkout workstation-$VMWAREVERSION 2>/dev/null
     systemctl restart vmware
   fi
 
-
 else
-  RUNNINGKERNEL=$(uname -r)
   echo Installed kernel: $INSTALLEDKERNEL
   echo Running kernel: $RUNNINGKERNEL
   echo "There is not a valid branch in mkubecek's repo that matches current Mware version $VMWAREVERSION"

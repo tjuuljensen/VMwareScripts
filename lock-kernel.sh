@@ -96,6 +96,10 @@ _parseArguments() {
   while [[ $# -gt 0 ]]
   do
     case $1 in
+        -h | --help )
+        _help
+        exit 1
+        ;;
         -d | --delete | -u | --unlock )
           #dnf versionlock delete *
           _checkVersionFormat $2

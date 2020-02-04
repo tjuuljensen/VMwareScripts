@@ -2,7 +2,7 @@
   # get-vmware-latest.sh
   #
   # Author: Torsten Juul-Jensen, tjuuljensen@gmail.com
-  # April 27, 2019
+  # February 4, 2019
   #
   # This script will handle download of latest software, online latest version check and  install support of VMware workstation.s
   # It was created to be part of an easy-configure setup for Linux computers as well as the maintenance of the installation over the long run.
@@ -10,7 +10,7 @@
   #
   # script will automatically escalate to root privileges if needed.
   #
-  # last edited: April 28, 2019 01:00
+  # last edited: February 4, 2020 07:00
 
   _set-flags-init () {
       # Distribution flags
@@ -21,7 +21,7 @@
   }
 
   _parse_arguments () {
-      _set-flags-init
+
       if [[ $# -eq 0 ]] ; then _help ; fi
 
         while [[ $# -gt 0 ]]
@@ -72,13 +72,13 @@
                 ;;
               * )
                _help
-               exit 404
+               exit 1
           esac
       done
   }
 
   _defineVariables () {
-    # Basic variables
+    # Basic variables - download directory and script execution directory
     if [ -z $DOWNLOADDIR ] ; then DOWNLOADDIR=. ; fi # If it has not been declared by command line args it is set to current directory
     SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )" #set the variable to the place where script is loaded from
 
@@ -148,7 +148,7 @@
 
 _main () {
   _defineVariables
-  (( $PRINTVERSIONFLAG == 1)) && echo VMware version is: $VMWAREVERSION
+  (( $PRINTVERSIONFLAG == 1)) && echo Latest online VMware version is: $VMWAREVERSION
   (( $SHOWSERIALFLAG == 1)) && _outputSerial
   (( $DOWNLOADFLAG == 1)) && _downloadVMWareWorkstation
   (( $INSTALLFLAG == 1)) && _confirm "Do you want to install VMware Workstation? [yN]" && _installVMwareWorkstation
@@ -156,6 +156,6 @@ _main () {
 }
 
   #### MAIN ####
-
+_set-flags-init
 _parse_arguments $@
 _main

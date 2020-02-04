@@ -12,7 +12,7 @@ _requireAdmin(){
 
 _help(){
   SCRIPT_NAME=$(basename $0)
-  echo "usage: $SCRIPT_NAME [--lock <KERNELVERSION_TO_BE_LOCKED>] [--unlock LOCKED_KERNELVERSION] [--install KERNELVERSION] [--info]"
+  echo "usage: $SCRIPT_NAME [--help] [--lock <KERNELVERSION_TO_BE_LOCKED>] [--unlock LOCKED_KERNELVERSION] [--install KERNELVERSION] [--info]"
   exit 1
 }
 

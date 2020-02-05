@@ -11,7 +11,7 @@
   #
   # It handles:
   # - online check for latest version
-  #  - download of latest software
+  # - download of latest software
   # - installation of VMware workstation.
   # - serial numbers read from files
   # - patch kernel modules for recent kernel versions

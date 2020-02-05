@@ -143,7 +143,7 @@
   _help()
   {
       SCRIPT_NAME=$(basename $0)
-      echo "usage: $SCRIPT_NAME [--version] [--download ] | [--install] | [--patch [latest|current]] | [--help] [--config-file <filewithserial.config>] [target-directory <download directory>]"
+      echo "usage: $SCRIPT_NAME [--download ] [--install] [--patch [latest|current|<SPECIFIC_KERNEL>]] [--config-file <filewithserial.config>] [target-directory <download directory>] [--version] | [--help] "
   }
 
   _confirm () {

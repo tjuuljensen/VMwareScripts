@@ -29,144 +29,67 @@
       PATCHFLAG=0
   }
 
-  _parse_arguments () {
-
-      if [[ $# -eq 0 ]] ; then _help ; fi
-
-        while [[ $# -gt 0 ]]
-        do
-          case $1 in
-              -d | --download )
-                  DOWNLOADFLAG=1
-                  shift
-                  ;;
-              -i | --install )
-                  # elevate privileges to root
-                  [ "$UID" -eq 0 ] || exec sudo bash "$0" "$@" # check if script is root and restart as root if not
-                  DOWNLOADFLAG=1
-                  INSTALLFLAG=1
-                  shift
-                  ;;
-              -p | --patch )
-                # patch option has three valid inputs: "current", "latest" or a specific kernel name
-                OPTION=$2
-                if [ ${OPTION,,} = "current" ] ; then # "current" entered as parameter to patch - use current loaded kernel
-                  SELECTEDKERNEL=$(uname -r)
-                else
-                  if [ ${OPTION,,} = "latest" ] ; then # "latest" entered as parameter to patch - use latest kernel
-                    SELECTEDKERNEL=$(rpm -qa kernel | sed 's/kernel-//g' | sort -r -V | awk 'NR==1')
-                  else # a specific kernel was parsed as parameter to patch - use this kernel (short format 5.4.10 allowed )
-                    SELECTEDKERNEL=$(rpm -qa kernel | sed 's/kernel-//g' | grep $OPTION | sort -r -V | awk 'NR==1')
-                    if [ -z $SELECTEDKERNEL ]  ; then # kernel not found
-                      echo Not a valid kernel option
-                      _help
-                      exit 1
-                    fi
-                  fi
-                fi
-                PATCHFLAG=1
-                shift
-                shift
-                ;;
-              -v | --version )
-                # for printing the latest online version of vmware
-                  PRINTVERSIONFLAG=1
-                  shift
-                  ;;
-              -s | --serial )
-                # display serial number read from serial numbers file
-                SHOWSERIALFLAG=1
-                shift
-                ;;
-              -t | --target-directory)
-                # directory to download to (and install from)
-                if [ -d $2 ] ; then
-                  DOWNLOADDIR=$2
-                else
-                  echo Target directory does not exist
-                  exit 2
-                fi
-                shift
-                shift
-                ;;
-              -c | --config-file )
-                # path to serial numbers file
-                if realpath -e -q $2 &>/dev/null ; then
-                  CONFIGFILE=$2
-                else
-                  echo "Config file ($2) does not exist"
-                  exit 2
-                fi
-                shift
-                shift
-                ;;
-              -h | --help )
-                _help
-                exit 1
-                ;;
-              * )
-               _help
-               exit 1
-          esac
-      done
-  }
-
   _defineVariables () {
     # Basic variables - download directory and script execution directory
     if [ -z $DOWNLOADDIR ] ; then DOWNLOADDIR=. ; fi # If it has not been declared by command line args it is set to current directory
     SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )" #set the variable to the place where script is loaded from
 
-    # Read config file with serial numbers
-    if [ -z $CONFIGFILE ] ; then CONFIGFILE=$SCRIPTDIR/serialnumbers.config ; fi # If CONFIGFILE has not been declared by command line args, it is set to a default value (serianlnum... in script directory)
-    if [[ -f $CONFIGFILE ]] ; then # file exists
-      source $CONFIGFILE # Load serial numbers from config file
-    fi
+    # variables related to current user & config
+    MYUSER=$(logname)
+    MYUSERDIR=/home/$MYUSER
+    RUNNINGKERNEL=$(uname -r)
 
-    # define URL locations and extract key information for later use
+    # define vmware variables from URL locations and extract key information for later use
     VMWAREURL=https://www.vmware.com/go/getworkstation-linux
     BINARYURL=$(curl -I $VMWAREURL 2>&1 | grep Location | cut -d ' ' -f2 | sed 's/\r//g') # Full URL to binary installer
     BINARYFILENAME="${BINARYURL##*/}" # Filename of binary installer
     VMWAREVERSION=$(echo $BINARYURL | cut -d '-' -f4 ) # In the format XX.XX.XX
     MAJORVERSION=$(echo $BINARYURL | cut -d '-' -f4 | cut -d '.' -f1) # In the format XX
-    # Another way of getting MAJORVERSION: curl -sIkL $VMWAREURL | grep "filename=" | sed -r 's|^([^.]+).*$|\1|; s|^[^0-9]*([0-9]+).*$|\1|'
-    MYUSER=$(logname) #
-    MYUSERDIR=/home/$MYUSER #
-    RUNNINGKERNEL=$(uname -r) #
 
+    # Read config file with serial numbers - variable can be pre-assigned from command line (set during command parsing)
+    if [ -z $CONFIGFILE ] ; then CONFIGFILE=$SCRIPTDIR/serialnumbers.config ; fi # If CONFIGFILE has not been declared by command line args, it is set to a default value (serianlnum... in script directory)
+    if [[ -f $CONFIGFILE ]] ; then # file exists
+      source $CONFIGFILE # Load serial numbers from config file
+    fi
+
+    # Define variable used to hold current vmware serial number (e.g. $VMWARESERIAL15) - variable content read from serialnumbers file
     if [ ! -z "VMWARESERIAL$MAJORVERSION" ] ; then # VMWARESERIALXX of the current major release is defined in config file
       # TMPSERIAL is used to translate serial numbers from config file - if major version is 15 then the value of the entry VMWARESERIAL15 is assigned to TMPSERIAL.
-      TMPSERIAL=VMWARESERIAL$MAJORVERSION # Addressing of a dynamic variable is different. Therefore it is put into CURRENTVMWSERIAL
+      TMPSERIAL=VMWARESERIAL$MAJORVERSION # Addressing of a dynamic variable is different (therefore the notation below). $CURRENTVMWSERIAL holds the serial number
       CURRENTVMWSERIAL=${!TMPSERIAL}
     fi
+
   }
 
   _help()
   {
-      SCRIPT_NAME=$(basename $0)
-      echo "usage: $SCRIPT_NAME [--download ] [--install] [--patch [latest|current|<SPECIFIC_KERNEL>]] [--config-file <filewithserial.config>] [target-directory <download directory>] [--version] | [--help] "
+    # output help text (syntax)
+    SCRIPT_NAME=$(basename $0)
+    echo "usage: $SCRIPT_NAME [--download ] [--install] [--patch [latest|current|<SPECIFIC_KERNEL>]] [--config-file <serialnofile.config>] [--target-directory <download directory>] [--version] | [--help] "
   }
 
   _confirm () {
     # prompt user for confirmation. Default is No
-      read -r -p "${1:-Do you want to proceed? [y/N]} " RESPONSE
-      RESPONSE=${RESPONSE,,}
-      if [[ $RESPONSE =~ ^(yes|y| ) ]]
-        then
-          true
-        else
-          false
-      fi
+    read -r -p "${1:-Do you want to proceed? [y/N]} " RESPONSE
+    RESPONSE=${RESPONSE,,}
+    if [[ $RESPONSE =~ ^(yes|y| ) ]]
+      then
+        true
+      else
+        false
+    fi
   }
 
   _downloadVMWareWorkstation(){
+    # Download latest VMware Workstation and make it executable
     cd $DOWNLOADDIR
-    wget --content-disposition -N -q --show-progress $BINARYURL # Overwrite file, quiet
+    wget --content-disposition -N -q --show-progress $BINARYURL # Download quiet - don't re-retrieve unless newer than local
     chmod +x $BINARYFILENAME
   }
 
   _installVMwareWorkstation(){
     # download has been done. Now install vmware workstation
-    ./$BINARYFILENAME --required --console --eulas-agreed #
+    ./$BINARYFILENAME --required --console --eulas-agreed --deferred-gtk
 
     # add serial number if serial number is defined
     if [ ! -z $CURRENTVMWSERIAL ] ; then #Serial number for major version is loaded as a variable
@@ -222,7 +145,7 @@ _patchModules(){
       make install VM_UNAME=$INSTALLEDKERNEL
       echo "Make sure to reboot before starting VMware (You are running another kernel than the compiled modules for VMware)"
     else # install for current kernel
-      echo Building modules for current installed kernel $RUNNINGKERNEL
+      echo Building modules for current running kernel $RUNNINGKERNEL
       sudo -u $MYUSER make
       make install
       systemctl restart vmware
@@ -236,9 +159,91 @@ _patchModules(){
 
 }
 
+_parse_arguments () {
+    # parse command line arguments
+    if [[ $# -eq 0 ]] ; then _help ; fi
+
+      while [[ $# -gt 0 ]]
+      do
+        case $1 in
+            -d | --download )
+                DOWNLOADFLAG=1
+                shift
+                ;;
+            -i | --install )
+                # elevate privileges to root
+                [ "$UID" -eq 0 ] || exec sudo bash "$0" "$@" # check if script is root and restart as root if not
+                DOWNLOADFLAG=1
+                INSTALLFLAG=1
+                shift
+                ;;
+            -p | --patch )
+              # patch option has three valid inputs: "current", "latest" or a specific kernel name
+              OPTION=$2
+              if [ ${OPTION,,} = "current" ] ; then # "current" entered as parameter to patch - use current loaded kernel
+                SELECTEDKERNEL=$(uname -r)
+              else
+                if [ ${OPTION,,} = "latest" ] ; then # "latest" entered as parameter to patch - use latest kernel
+                  SELECTEDKERNEL=$(rpm -qa kernel | sed 's/kernel-//g' | sort -r -V | awk 'NR==1')
+                else # a specific kernel was parsed as parameter to patch - use this kernel (short format 5.4.10 allowed )
+                  SELECTEDKERNEL=$(rpm -qa kernel | sed 's/kernel-//g' | grep $OPTION | sort -r -V | awk 'NR==1')
+                  if [ -z $SELECTEDKERNEL ]  ; then # if variable assignment above is empty, kernel is not found
+                    echo Not a valid kernel option
+                    _help
+                    exit 1
+                  fi
+                fi
+              fi
+              PATCHFLAG=1
+              shift
+              shift
+              ;;
+            -v | --version )
+              # for printing the latest online version of vmware
+                PRINTVERSIONFLAG=1
+                shift
+                ;;
+            -s | --serial )
+              # display serial number read from serial numbers file
+              SHOWSERIALFLAG=1
+              shift
+              ;;
+            -t | --target-directory)
+              # directory to download to (and install from)
+              if [ -d $2 ] ; then
+                DOWNLOADDIR=$2
+              else
+                echo Target directory does not exist
+                exit 2
+              fi
+              shift
+              shift
+              ;;
+            -c | --config-file )
+              # path to serial numbers file
+              if realpath -e -q $2 &>/dev/null ; then
+                CONFIGFILE=$2
+              else
+                echo "Config file ($2) does not exist"
+                exit 2
+              fi
+              shift
+              shift
+              ;;
+            -h | --help )
+              _help
+              exit 1
+              ;;
+            * )
+             _help
+             exit 1
+        esac
+    done
+}
+
 _main () {
   _defineVariables
-  (( $PRINTVERSIONFLAG == 1)) && echo Latest online VMware version is: $VMWAREVERSION
+  (( $PRINTVERSIONFLAG == 1)) && echo Latest online VMware Workstation version is: $VMWAREVERSION
   (( $SHOWSERIALFLAG == 1)) && _outputSerial
   (( $DOWNLOADFLAG == 1)) && _downloadVMWareWorkstation
   (( $INSTALLFLAG == 1)) && _confirm "Do you want to install VMware Workstation? [yN]" && _installVMwareWorkstation

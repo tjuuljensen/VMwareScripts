@@ -13,7 +13,7 @@ _requireAdmin(){
 
 _help(){
   SCRIPT_NAME=$(basename $0)
-  echo "usage: $SCRIPT_NAME [--help] [--lock <KERNELVERSION_TO_BE_LOCKED>] [--unlock LOCKED_KERNELVERSION] [--install KERNELVERSION] [--info]"
+  echo "usage: $SCRIPT_NAME [[--lock] <KERNELVERSION_TO_BE_LOCKED>] [--unlock LOCKED_KERNELVERSION] [--install KERNELVERSION] [--info] [--help] "
 }
 
 _installRequired(){
@@ -126,8 +126,9 @@ _parseArguments() {
           exit 0
           ;;
         --info )
-          echo "### Grubby Info: ###"
-          grubby --info=ALL | grep index=2 -A 1
+          echo "### Grubby Default Kernel: ###"
+          #grubby --info=ALL | grep index=2 -A 1
+          grubby --default-kernel
           echo "### dnf versionlock Info: ###"
           dnf versionlock list kernel*
           exit 0

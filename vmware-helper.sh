@@ -14,7 +14,7 @@
   # - download of latest software
   # - installation of VMware workstation.
   # - serial numbers read from files
-  # - patch kernel modules for recent kernel versions
+  # - patch kernel modules for recent kernel versions - from https://github.com/mkubecek/vmware-host-modules
   #
   # script will automatically escalate to root privileges if needed.
   #

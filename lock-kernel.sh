@@ -46,7 +46,7 @@ _lockKernel(){
 
   BOOTIMAGE=$(ls /boot/vmlinuz* | grep $1)
 
-  if [ ! -z $BOOTIMAGE ] ; then
+  if [ -f $BOOTIMAGE ] ; then
     grubby --set-default $BOOTIMAGE
     rpm -qa kernel* | grep $1 | xargs dnf versionlock add
   else
@@ -63,7 +63,17 @@ _removeKernelLock(){
   fi
 
   #grubby --set-default $BOOTIMAGE
-  rpm -qa kernel* | grep $1 | xargs dnf versionlock delete
+  echo Removing lock on kernel $1...
+
+  BOOTIMAGE=$(ls /boot/vmlinuz* | grep -v rescue | sort | awk 'NR==1')
+  if [ -f $BOOTIMAGE ] ; then
+    grubby --set-default $BOOTIMAGE
+  else
+    echo "Error: Cannot remove lock on kernel $1"
+    exit 2
+  fi
+
+  rpm -qa kernel* | grep "$1" | xargs dnf versionlock delete
 }
 
 _checkVersionFormat(){

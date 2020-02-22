@@ -178,10 +178,12 @@ _parse_arguments () {
                 shift
                 ;;
             -p | --patch )
+              [ "$UID" -eq 0 ] || exec sudo bash "$0" "$@" # check if script is root and restart as root if not
               # patch option has three valid inputs: "current", "latest" or a specific kernel name
               OPTION=$2
               if [ ${OPTION,,} = "current" ] ; then # "current" entered as parameter to patch - use current loaded kernel
                 SELECTEDKERNEL=$(uname -r)
+                echo Patching $SELECTEDKERNEL...
               else
                 if [ ${OPTION,,} = "latest" ] ; then # "latest" entered as parameter to patch - use latest kernel
                   SELECTEDKERNEL=$(rpm -qa kernel | sed 's/kernel-//g' | sort -r -V | awk 'NR==1')

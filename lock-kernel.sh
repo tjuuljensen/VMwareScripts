@@ -1,10 +1,13 @@
 #!/bin/bash
 # lock-kernel.sh
 #
+# Author: Torsten Juul-Jensen
+# Date: 27 June, 2021
+#
 # Intended use (and tested) on Fedora Workstation
 # locks specific installed kernel with versionlock
 # version regex= ^[0-9]+\.[0-9]+\.[0-9]+$
-
+#
 
 _requireAdmin(){
     # check if script is root and restart as root if not
@@ -46,11 +49,11 @@ _lockKernel(){
 
   BOOTIMAGE=$(ls /boot/vmlinuz* | grep $1)
 
-  if [ -f $BOOTIMAGE ] ; then
+  if [[ -f $BOOTIMAGE ]] ; then
     grubby --set-default $BOOTIMAGE
     rpm -qa kernel* | grep $1 | xargs dnf versionlock add
   else
-    echo "Error: Cannot lock kernel. No bootimage for kernel-$1 found in /boot/"
+    echo "Error [_lockKernel]: Cannot lock kernel. No bootimage for kernel-$1 found in /boot/"
     exit 2
   fi
 }
